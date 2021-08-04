@@ -6,7 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const hbs = require("handlebars");
-const { exit } = require('process');
 
 const PORT = process.env.PORT || 1987;
 
@@ -22,84 +21,42 @@ app.get("/", (req, res, next) => {
 });
 
 const EXPORT_DESTINATION = './export';
-const width = 1200;
-const height = 600;
-const filename = 'example.png'
-
-
-const compile = async (templateName, data) => {
-	const filePath = path.join(__dirname, `${templateName}.hbs`);
-	if (!filePath) {
-		throw new Error(`Could not find ${templateName}.hbs in generatePDF`);
-	}
-	const html = await fs.readFileSync(filePath, 'utf-8');
-	return hbs.compile(html)(data);
-}
-
-app.get("/test", async (req, res, next) => {
-    // Use query params and defaults
-    let title = req.query.title || '';
-    let text = req.query.text || '';
-    let roofTitle = req.query.roofTitle || '';
-    let filename = `test.png`;
-
-    const content = await compile('template', {
-        title: title, 
-        text: text,
-        roofTitle: roofTitle,
-    });
-    let browser = null;
-    try {
-        browser = await puppeteer.launch({
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--font-render-hinting=none",
-                "--force-color-profile=srgb",
-            ],
-            headless: true,
-        })
-        //const context = await browser.createIncognitoBrowserContext();
-        const page = await browser.newPage();
-        await page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
-        await page.setViewport({ width: 1200, height: 600, deviceScaleFactor: 1});
-        await page.goto(`data: text/html;charset=UTF-8, ${ content }`, { 
-            waitUntil: "domcontentloaded" 
-        });
-        await page.setContent(content);
-
-        const image = await page.screenshot({ 
-            path: filename, 
-            type: 'png',
-            fullPage: false,
-        });
-
-        await page.close();
-        return image;
-    } catch(err) {
-        console.log(err);
-    } finally {
-        await browser.close();
-        console.log('Image created');
-        res.sendFile(path.join(__dirname + `/${ filename }`));
-    }
-});
+const WIDTH = 1200;
+const HEIGHT = 600;
 
 
 app.get("/job", async (req, res, next) => {
     console.time("OGJob");
-    const types = {
-        'permanent': 'Festanstellung',
-        'freelance': 'Freiberuflich',
-        'interim': 'Interim',
-    };
     // Use query params and defaults
     let title = req.query.title || '';
     let location = req.query.location || 'Remote';
     let time = req.query.time || 'Fulltime';
     let type = req.query.type || 'Permanent';
-    let filename = `temp_job.png`;
+    let id = req.query.id || 0;
+    let filename = `temp_job${ id }.png`;
+    let force = req.query.force || 'false';
+    let file = await fs.existsSync(filename);
+
+    const lastSavedThreshold = 3 * 24 * 60 * 60; // three days
+    // check if file exists, and if so, if it's not older than x days
+    if (force === 'false' && file) {
+        try {
+            const stats = fs.statSync(filename);
+            let modifiedDate = new Date(stats.mtime);
+            let now = new Date();
+
+            if (now.getTime() - modifiedDate.getTime() < lastSavedThreshold) {
+                // return the old image
+                console.log('Return old image (newer than 3 days)');
+                console.timeEnd("OGJob");
+                res.sendFile(path.join(__dirname + `/${ filename }`));
+
+                return;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
     const content = await compile('job', {
         title, location, time, type
@@ -119,7 +76,7 @@ app.get("/job", async (req, res, next) => {
         //const context = await browser.createIncognitoBrowserContext();
         const page = await browser.newPage();
         await page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
-        await page.setViewport({ width: 1200, height: 600, deviceScaleFactor: 1});
+        await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1});
         await page.goto(`data: text/html;charset=UTF-8, ${ content }`, { 
             waitUntil: "domcontentloaded" 
         });
@@ -198,7 +155,7 @@ app.get("/topic", async (req, res, next) => {
         //const context = await browser.createIncognitoBrowserContext();
         const page = await browser.newPage();
         await page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
-        await page.setViewport({ width: 1200, height: 600, deviceScaleFactor: 1});
+        await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1});
         await page.goto(`data: text/html;charset=UTF-8, ${ content }`, { 
             waitUntil: "domcontentloaded" 
         });
