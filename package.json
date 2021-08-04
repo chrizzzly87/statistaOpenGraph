@@ -1,0 +1,23 @@
+{
+  "name": "opengraph",
+  "version": "1.0.0",
+  "description": "open graph node js image server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "nodemon": "nodemon index.js --max-old-space-size=2048 "
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "compression": "^1.7.4",
+    "express": "^4.17.1",
+    "express-async-await": "^1.1.0",
+    "express-sharp": "^3.1.1",
+    "handlebars": "^4.7.7",
+    "node-fetch": "^2.6.0",
+    "puppeteer": "^10.1.0",
+    "sharp": "^0.25.2"
+  }
+}
