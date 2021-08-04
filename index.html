@@ -7,47 +7,5 @@
 </head>
     <body>
         <h1>How to use the service:</h1>
-        <p>Use one of the following routes to create a request that will render and export an image</p>
-
-        <div>
-            <h2>Job-Position</h2>
-            <h3>Route</h3>
-            <code>/og/job</code>
-            <p><em>Example:</em> 
-                <code style="user-select: all;">http://localhost:1987/og/job?text=Team%20Webdev%20ist%20das%20Beste%20Team%20bei%20Statista&department=it&location=newyork&platform=en</code>
-            </p>
-            <h3>Params</h3>
-                <code>text</code>
-                <p>
-                    <em>Required</em>
-                    This is the main text that will be drawn. Make sure to urlencode the text.
-                </p>
-                <code>id</code>
-                <p>
-                    <em>Required</em>
-                    Used for the unique filename
-                </p>
-                <code>deparment</code>
-                <p>
-                    Currently not used. Could be added to render the department name OR define the bg image based on the department
-                </p>
-                <code>location</code>
-                <p>
-                    Render the location of the job position. Currently these locations are available:
-                    <ul>
-                        <li>New York</li>
-                        <li>Hamburg</li>
-                        <li>Singapure</li>
-                        <li>London</li>
-                        <li>Tokyo</li>
-                    </ul>
-                    <em>Default: Worldwide</em>
-                </p>
-                <code>Platform</code>
-                <p>
-                    Currently not used. Might be useful for translations.
-                    <em>Default: en</em>
-                </p>
-        </div>
     </body>
 </html>
