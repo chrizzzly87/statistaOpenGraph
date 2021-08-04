@@ -25,6 +25,15 @@ const WIDTH = 1200;
 const HEIGHT = 600;
 
 
+const compile = async (templateName, data) => {
+	const filePath = path.join(__dirname, `${templateName}.hbs`);
+	if (!filePath) {
+		throw new Error(`Could not find ${templateName}.hbs in generatePDF`);
+	}
+	const html = await fs.readFileSync(filePath, 'utf-8');
+	return hbs.compile(html)(data);
+}
+
 app.get("/job", async (req, res, next) => {
     console.time("OGJob");
     // Use query params and defaults
