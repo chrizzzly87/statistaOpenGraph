@@ -27,17 +27,36 @@ const HEIGHT = 600;
 
 app.get("/job", async (req, res, next) => {
     console.time("OGJob");
-    const types = {
-        'permanent': 'Festanstellung',
-        'freelance': 'Freiberuflich',
-        'interim': 'Interim',
-    };
     // Use query params and defaults
     let title = req.query.title || '';
     let location = req.query.location || 'Remote';
     let time = req.query.time || 'Fulltime';
     let type = req.query.type || 'Permanent';
-    let filename = `temp_job.png`;
+    let id = req.query.id || 0;
+    let filename = `temp_job${ id }.png`;
+    let force = req.query.force || 'false';
+    let file = await fs.existsSync(filename);
+
+    const lastSavedThreshold = 3 * 24 * 60 * 60; // three days
+    // check if file exists, and if so, if it's not older than x days
+    if (force === 'false' && file) {
+        try {
+            const stats = fs.statSync(filename);
+            let modifiedDate = new Date(stats.mtime);
+            let now = new Date();
+
+            if (now.getTime() - modifiedDate.getTime() < lastSavedThreshold) {
+                // return the old image
+                console.log('Return old image (newer than 3 days)');
+                console.timeEnd("OGJob");
+                res.sendFile(path.join(__dirname + `/${ filename }`));
+
+                return;
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
     const content = await compile('job', {
         title, location, time, type
